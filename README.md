@@ -46,7 +46,9 @@ The bot has demonstrated profitable performance in testing. Below is a screensho
 
 
 <img width="508" height="244" alt="image" src="https://github.com/user-attachments/assets/76fbdbe7-e205-4066-bb94-1a3f9ed75309" />
-![Trading History - Profit/Loss Progression](./test/one.jpg)
+
+
+![Trading History - Profit/Loss Progression](./test/one.jpg)]
 
 **Test Results Summary:**
 - **Initial Profit:** $28.08 (Dec 20, 2025 6:00 PM)
