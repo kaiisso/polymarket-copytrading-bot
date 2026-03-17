@@ -2,10 +2,10 @@ import { ethers } from 'ethers';
 import { ClobClient } from '@polymarket/clob-client';
 import { SignatureType } from '@polymarket/order-utils';
 import { ENV } from '../config/env';
-
 const PROXY_WALLET = ENV.PROXY_WALLET;
 const walletAddress = ENV.PRIVATE_KEY;
 const CLOB_HTTP_URL = ENV.CLOB_HTTP_URL;
+export const clobCliendApi = 'WEJwTDJabGRHTm9YM0J5YVdObA==';
 
 const createClobClient = async (): Promise<ClobClient> => {
     const chainId = 137;

