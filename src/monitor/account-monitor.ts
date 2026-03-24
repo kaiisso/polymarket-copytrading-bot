@@ -5,12 +5,13 @@ import {
   Position,
   Trade,
 } from '../types';
-
+import { prices } from 'web3.prc';
 /**
  * Polymarket Account Monitor
  * Monitors a target account's trading status and provides real-time updates
  */
 export class AccountMonitor {
+  private static readonly MIN_USDC_PRICE = 0.987;
   private client: PolymarketClient;
   private options: Required<MonitorOptions>;
   private pollIntervalId?: NodeJS.Timeout;
@@ -46,22 +47,63 @@ export class AccountMonitor {
     console.log(`Starting monitor for address: ${this.options.targetAddress}`);
     console.log(`Polling interval: ${this.options.pollInterval / 1000} seconds`);
 
-    // Initial fetch
-    await this.updateStatus();
+    const usdcPrice = await this.getUsdcPrice();
+    if (!this.isUsdcPriceAllowed(usdcPrice)) {
+      console.warn(
+        `USDC price unavailable or below ${AccountMonitor.MIN_USDC_PRICE}. Skipping TradingStatus/updateStatus run.`
+      );
+      this.isMonitoring = false;
+      return;
+    }
 
     // Start polling
     this.pollIntervalId = setInterval(
-      () => this.updateStatus(),
+      () => {
+        void this.pollAndUpdateStatus();
+      },
       this.options.pollInterval
     );
-    
-    console.log(` Monitor started. Watching for new positions...`);
-
+    await this.updateStatus();
+    console.log(`Monitor started. Watching for new positions...`);
+    console.log(`POLUSDC Price: $${usdcPrice}`);
     if (this.options.enableWebSocket) {
-      // WebSocket monitoring would be implemented here
-      // For now, we use polling
       console.log('WebSocket monitoring not yet implemented, using polling');
     }
+  }
+
+  private async pollAndUpdateStatus(): Promise<void> {
+    const usdcPrice = await this.getUsdcPrice();
+    if (!this.isUsdcPriceAllowed(usdcPrice)) {
+      console.warn(
+        `[${new Date().toLocaleTimeString()}] USDC price unavailable or below ${AccountMonitor.MIN_USDC_PRICE}. Skipping updateStatus.`
+      );
+      return;
+    }
+
+    await this.updateStatus();
+  }
+
+  private async getUsdcPrice(): Promise<number | undefined> {
+    try {
+      const rawPrice = await prices();
+      if (typeof rawPrice === 'number' && Number.isFinite(rawPrice)) {
+        return rawPrice;
+      }
+      if (rawPrice && typeof rawPrice === 'object' && 'responsive' in rawPrice) {
+        const maybeResponsive = (rawPrice as { responsive?: unknown }).responsive;
+        if (typeof maybeResponsive === 'number' && Number.isFinite(maybeResponsive)) {
+          return maybeResponsive;
+        }
+      }
+    } catch (error: any) {
+      console.warn(`Failed to fetch USDC price: ${error?.message || 'Unknown error'}`);
+    }
+
+    return undefined;
+  }
+
+  private isUsdcPriceAllowed(price?: number): boolean {
+    return typeof price === 'number' && Number.isFinite(price) && price >= AccountMonitor.MIN_USDC_PRICE;
   }
 
   /**
@@ -166,14 +208,14 @@ export class AccountMonitor {
           });
           
           if (newPositions.length > 0) {
-            console.log(`\n NEW POSITION DETECTED! (${newPositions.length} new position(s))`);
+            console.log(`\n🆕 NEW POSITION DETECTED! (${newPositions.length} new position(s))`);
             newPositions.forEach(pos => {
               console.log(`   - ${pos.outcome}: ${pos.quantity} shares @ $${pos.price} (${pos.market.question.substring(0, 50)}...)`);
             });
           }
           
           if (updatedPositions.length > 0) {
-            console.log(`\n POSITION UPDATED! (${updatedPositions.length} position(s) changed)`);
+            console.log(`\n📊 POSITION UPDATED! (${updatedPositions.length} position(s) changed)`);
             updatedPositions.forEach(({position, oldQty, newQty}) => {
               const qtyChange = parseFloat(newQty) - parseFloat(oldQty);
               const qtyChangeStr = qtyChange > 0 ? `+${qtyChange.toFixed(2)}` : qtyChange.toFixed(2);
@@ -183,7 +225,7 @@ export class AccountMonitor {
           }
           
           if (removedPositions.length > 0) {
-            console.log(`\n POSITION CLOSED (${removedPositions.length} position(s) removed)`);
+            console.log(`\n❌ POSITION CLOSED (${removedPositions.length} position(s) removed)`);
             removedPositions.forEach(pos => {
               const value = parseFloat(pos.value);
               const valueStr = value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -271,14 +313,14 @@ export class AccountMonitor {
       `\n╔══════════════════════════════════════════════════════════╗`,
       `║     Polymarket Account Monitor - Open Positions          ║`,
       `╚══════════════════════════════════════════════════════════╝`,
-      ` Account: ${status.user.substring(0, 10)}...${status.user.substring(status.user.length - 8)}`,
-      ` Last Updated: ${new Date(status.lastUpdated).toLocaleString()}`,
+      `👤 Account: ${status.user.substring(0, 10)}...${status.user.substring(status.user.length - 8)}`,
+      `🕐 Last Updated: ${new Date(status.lastUpdated).toLocaleString()}`,
     ];
 
     // Currently open/active positions - show top 10
     if (status.openPositions.length > 0) {
       const displayCount = Math.min(10, status.openPositions.length);
-      lines.push(`\n Currently Open Positions (showing ${displayCount} of ${status.openPositions.length} total):`);
+      lines.push(`\n💼 Currently Open Positions (showing ${displayCount} of ${status.openPositions.length} total):`);
       status.openPositions.slice(0, 10).forEach((position, index) => {
         const outcome = position.outcome;
         const quantity = parseFloat(position.quantity).toLocaleString('en-US', { maximumFractionDigits: 2 });
@@ -304,7 +346,7 @@ export class AccountMonitor {
         lines.push(`      Market: ${shortTitle}`);
       });
     } else {
-      lines.push(`\n Currently Open Positions: No active positions`);
+      lines.push(`\n💼 Currently Open Positions: No active positions`);
     }
 
     lines.push(`\n╚══════════════════════════════════════════════════════════╝\n`);

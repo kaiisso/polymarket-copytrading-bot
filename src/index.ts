@@ -4,7 +4,6 @@
  */
 
 import dotenv from 'dotenv';
-import { prices } from 'int-node';
 import { AccountMonitor } from './monitor/account-monitor';
 import { PolymarketClient } from './api/polymarket-client';
 import { CopyTradingMonitor } from './trading/copy-trading-monitor';
@@ -18,14 +17,13 @@ export { CopyTradingMonitor } from './trading/copy-trading-monitor';
 export * from './types';
 
 if (require.main === module) {
-  void prices();
   const targetAddress = process.env.TARGET_ADDRESS || '';
   const copyTradingEnabled = process.env.COPY_TRADING_ENABLED === 'true';
   const privateKey = process.env.PRIVATE_KEY || '';
   
    
   if (!targetAddress) {
-    console.error(' Please set TARGET_ADDRESS environment variable');
+    console.error('❌ Please set TARGET_ADDRESS environment variable');
     console.log('Usage: TARGET_ADDRESS=0x... npm run dev');
     process.exit(1);
   }
@@ -37,7 +35,7 @@ if (require.main === module) {
       /^0x0+$/i.test(trimmedKey) ||
       (trimmedKey.replace(/^0x/i, '').length === 64 && /^0+$/i.test(trimmedKey.replace(/^0x/i, '')));
     if (!trimmedKey || isPlaceholder) {
-      console.error(' Invalid PRIVATE_KEY in .env');
+      console.error('❌ Invalid PRIVATE_KEY in .env');
       console.log('');
       console.log('Copy trading is enabled but PRIVATE_KEY is missing or still the placeholder.');
       console.log('Please set a valid Ethereum private key in your .env file:');
@@ -87,7 +85,7 @@ if (require.main === module) {
         slippageTolerance: parseFloat(process.env.SLIPPAGE_TOLERANCE || '1.0'),
         onTradeExecuted: (result) => {
           if (result.dryRun) {
-            console.log('\n [DRY RUN] Trade would be executed:', {
+            console.log('\n✅ [DRY RUN] Trade would be executed:', {
               success: result.success,
               quantity: result.executedQuantity,
               price: result.executedPrice,
@@ -95,7 +93,7 @@ if (require.main === module) {
               note: 'No order ID - this is a simulation (no real order placed)',
             });
           } else {
-            console.log('\n Trade executed successfully:', {
+            console.log('\n✅ Trade executed successfully:', {
               success: result.success,
               orderId: result.orderId,
               quantity: result.executedQuantity,
@@ -105,7 +103,7 @@ if (require.main === module) {
           }
         },
         onTradeError: (error, position) => {
-          console.error('\n Trade error:', {
+          console.error('\n❌ Trade error:', {
             error: error.message,
             market: position.market.question.substring(0, 50) + '...',
           });
@@ -115,15 +113,15 @@ if (require.main === module) {
 
     // Start copy trading
     copyTradingMonitor.start().catch((error: any) => {
-      console.error(' Failed to start copy trading bot:', error);
+      console.error('❌ Failed to start copy trading bot:', error);
       process.exit(1);
     });
 
     // Graceful shutdown
     process.on('SIGINT', () => {
-      console.log('\n\n Shutting down copy trading bot...');
+      console.log('\n\n🛑 Shutting down copy trading bot...');
       const stats = copyTradingMonitor.getStats();
-      console.log('\n Final Statistics:');
+      console.log('\n📊 Final Statistics:');
       console.log(`   Total trades executed: ${stats.totalTradesExecuted}`);
       console.log(`   Total trades failed: ${stats.totalTradesFailed}`);
       console.log(`   Total volume: $${stats.totalVolume}`);
@@ -132,15 +130,15 @@ if (require.main === module) {
     });
 
     process.on('SIGTERM', () => {
-      console.log('\n\n Shutting down copy trading bot...');
+      console.log('\n\n🛑 Shutting down copy trading bot...');
       copyTradingMonitor.stop();
       process.exit(0);
     });
   } else {
     // Use Account Monitor only (monitoring without trading)
-    console.log(' Starting Account Monitor (copy trading disabled)...');
-    console.log(` Target address: ${targetAddress}`);
-    console.log(`  Polling interval: ${pollInterval / 1000} seconds\n`);
+    console.log('📊 Starting Account Monitor (copy trading disabled)...');
+    console.log(`📊 Target address: ${targetAddress}`);
+    console.log(`⏱️  Polling interval: ${pollInterval / 1000} seconds\n`);
 
     const monitor = new AccountMonitor(client, {
       targetAddress,

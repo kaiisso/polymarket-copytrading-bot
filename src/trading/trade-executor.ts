@@ -67,17 +67,17 @@ export class TradeExecutor {
    */
   async initialize(): Promise<void> {
     if (this.config.dryRun) {
-      console.log(' DRY RUN MODE: Trade execution disabled');
+      console.log('🔍 DRY RUN MODE: Trade execution disabled');
       return;
     }
 
     try {
-      console.log(' Initializing trade executor...');
+      console.log('🔑 Initializing trade executor...');
       await this.client.createOrDeriveApiKey();
       this.apiKeyCreated = true;
-      console.log(` Trade executor initialized for wallet: ${this.walletAddress}`);
+      console.log(`✅ Trade executor initialized for wallet: ${this.walletAddress}`);
     } catch (error: any) {
-      console.error(' Failed to initialize trade executor:', error.message);
+      console.error('❌ Failed to initialize trade executor:', error.message);
       throw new Error(`Failed to initialize trade executor: ${error.message}`);
     }
   }
@@ -137,7 +137,7 @@ export class TradeExecutor {
       }
 
       if (this.config.dryRun) {
-        console.log(` [DRY RUN] Would execute BUY order:`);
+        console.log(`🔍 [DRY RUN] Would execute BUY order:`);
         console.log(`   Token ID: ${tokenId}`);
         console.log(`   Quantity: ${tradeQuantity.toFixed(4)} shares`);
         console.log(`   Price: $${tradePrice.toFixed(4)}`);
@@ -157,7 +157,7 @@ export class TradeExecutor {
       }
 
       // Execute buy order
-      console.log(` Executing BUY order: ${tradeQuantity.toFixed(4)} shares @ $${tradePrice.toFixed(4)}`);
+      console.log(`🟢 Executing BUY order: ${tradeQuantity.toFixed(4)} shares @ $${tradePrice.toFixed(4)}`);
       const orderResponse = await this.client.createAndPostOrder({
         tokenID: tokenId,
         price: tradePrice,
@@ -171,13 +171,13 @@ export class TradeExecutor {
       result.executedQuantity = tradeQuantity.toFixed(4);
       result.executedPrice = tradePrice.toFixed(4);
       
-      console.log(` BUY order executed successfully! Order ID: ${orderResponse.orderID}`);
+      console.log(`✅ BUY order executed successfully! Order ID: ${orderResponse.orderID}`);
       this.config.onTradeExecuted(result);
       
       return result;
     } catch (error: any) {
       const errorMsg = error.message || 'Unknown error';
-      console.error(` Failed to execute BUY order:`, errorMsg);
+      console.error(`❌ Failed to execute BUY order:`, errorMsg);
       result.error = errorMsg;
       this.config.onTradeError(error, position);
       return result;
@@ -207,7 +207,7 @@ export class TradeExecutor {
       const tradePrice = parseFloat(position.price);
 
       if (this.config.dryRun) {
-        console.log(` [DRY RUN] Would execute SELL order:`);
+        console.log(`🔍 [DRY RUN] Would execute SELL order:`);
         console.log(`   Token ID: ${tokenId}`);
         console.log(`   Quantity: ${tradeQuantity.toFixed(4)} shares`);
         console.log(`   Price: $${tradePrice.toFixed(4)}`);
@@ -226,7 +226,7 @@ export class TradeExecutor {
       }
 
       // Execute sell order
-      console.log(` Executing SELL order: ${tradeQuantity.toFixed(4)} shares @ $${tradePrice.toFixed(4)}`);
+      console.log(`🔴 Executing SELL order: ${tradeQuantity.toFixed(4)} shares @ $${tradePrice.toFixed(4)}`);
       const orderResponse = await this.client.createAndPostOrder({
         tokenID: tokenId,
         price: tradePrice,
@@ -240,13 +240,13 @@ export class TradeExecutor {
       result.executedQuantity = tradeQuantity.toFixed(4);
       result.executedPrice = tradePrice.toFixed(4);
       
-      console.log(` SELL order executed successfully! Order ID: ${orderResponse.orderID}`);
+      console.log(`✅ SELL order executed successfully! Order ID: ${orderResponse.orderID}`);
       this.config.onTradeExecuted(result);
       
       return result;
     } catch (error: any) {
       const errorMsg = error.message || 'Unknown error';
-      console.error(` Failed to execute SELL order:`, errorMsg);
+      console.error(`❌ Failed to execute SELL order:`, errorMsg);
       result.error = errorMsg;
       this.config.onTradeError(error, position);
       return result;

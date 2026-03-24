@@ -66,19 +66,19 @@ export class CopyTradingMonitor {
    */
   async start(): Promise<void> {
     if (!this.config.enabled) {
-      console.log('  Copy trading is disabled. Starting monitor only...');
+      console.log('⚠️  Copy trading is disabled. Starting monitor only...');
       await this.accountMonitor.start();
       return;
     }
 
-    console.log(' Starting copy trading monitor...');
-    console.log(` Target address: ${this.targetAddress}`);
-    console.log(` Trading wallet: ${this.tradeExecutor.getWalletAddress()}`);
+    console.log('🚀 Starting copy trading monitor...');
+    console.log(`📊 Target address: ${this.targetAddress}`);
+    console.log(`👛 Trading wallet: ${this.tradeExecutor.getWalletAddress()}`);
     
     if (this.config.dryRun) {
-      console.log(' DRY RUN MODE: No actual trades will be executed');
+      console.log('🔍 DRY RUN MODE: No actual trades will be executed');
     } else {
-      console.log(' LIVE MODE: Trades will be executed');
+      console.log('✅ LIVE MODE: Trades will be executed');
     }
 
     // Initialize trade executor
@@ -93,7 +93,7 @@ export class CopyTradingMonitor {
 
     // Start monitoring
     await this.accountMonitor.start();
-    console.log(' Copy trading monitor started');
+    console.log('✅ Copy trading monitor started');
   }
 
   /**
@@ -101,7 +101,7 @@ export class CopyTradingMonitor {
    */
   stop(): void {
     this.accountMonitor.stop();
-    console.log(' Copy trading monitor stopped');
+    console.log('🛑 Copy trading monitor stopped');
   }
 
   /**
@@ -137,7 +137,7 @@ export class CopyTradingMonitor {
       }
 
       try {
-        console.log(`\n New position detected: ${position.market.question}`);
+        console.log(`\n🆕 New position detected: ${position.market.question}`);
         console.log(`   Outcome: ${position.outcome}`);
         console.log(`   Quantity: ${position.quantity} shares @ $${position.price}`);
         
@@ -167,7 +167,7 @@ export class CopyTradingMonitor {
       }
 
       try {
-        console.log(`\n Position closed: ${position.market.question}`);
+        console.log(`\n❌ Position closed: ${position.market.question}`);
         console.log(`   Outcome: ${position.outcome}`);
         console.log(`   Quantity: ${position.quantity} shares @ $${position.price}`);
         

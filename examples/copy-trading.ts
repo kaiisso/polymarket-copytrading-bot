@@ -11,14 +11,14 @@ async function main() {
   const privateKey = process.env.PRIVATE_KEY || '';
 
   if (!targetAddress) {
-    console.error(' Please set TARGET_ADDRESS environment variable');
+    console.error('❌ Please set TARGET_ADDRESS environment variable');
     console.log('Usage: TARGET_ADDRESS=0x... PRIVATE_KEY=0x... npm run example:copy-trading');
     process.exit(1);
   }
 
   if (!privateKey) {
-    console.error(' Please set PRIVATE_KEY environment variable');
-    console.log('  WARNING: Never share your private key!');
+    console.error('❌ Please set PRIVATE_KEY environment variable');
+    console.log('⚠️  WARNING: Never share your private key!');
     process.exit(1);
   }
 
@@ -53,7 +53,7 @@ async function main() {
       minTradeSize: parseFloat(process.env.MIN_TRADE_SIZE || '1'), // $1 minimum
       slippageTolerance: parseFloat(process.env.SLIPPAGE_TOLERANCE || '1.0'), // 1% slippage
       onTradeExecuted: (result) => {
-        console.log('\n Trade executed:', {
+        console.log('\n✅ Trade executed:', {
           success: result.success,
           orderId: result.orderId,
           quantity: result.executedQuantity,
@@ -62,7 +62,7 @@ async function main() {
         });
       },
       onTradeError: (error, position) => {
-        console.error('\n Trade error:', {
+        console.error('\n❌ Trade error:', {
           error: error.message,
           market: position.market.question,
         });
@@ -71,25 +71,25 @@ async function main() {
   );
 
   // Start copy trading
-  console.log('\n Starting copy trading bot...');
-  console.log(` Target address: ${targetAddress}`);
-  console.log(` Trading wallet: ${copyTradingMonitor.getTradeExecutor().getWalletAddress()}`);
-  console.log(` Dry run mode: ${process.env.DRY_RUN === 'true' ? 'ENABLED' : 'DISABLED'}`);
-  console.log(` Position size multiplier: ${process.env.POSITION_SIZE_MULTIPLIER || '1.0'}x\n`);
+  console.log('\n🚀 Starting copy trading bot...');
+  console.log(`📊 Target address: ${targetAddress}`);
+  console.log(`👛 Trading wallet: ${copyTradingMonitor.getTradeExecutor().getWalletAddress()}`);
+  console.log(`🔍 Dry run mode: ${process.env.DRY_RUN === 'true' ? 'ENABLED' : 'DISABLED'}`);
+  console.log(`💰 Position size multiplier: ${process.env.POSITION_SIZE_MULTIPLIER || '1.0'}x\n`);
 
   try {
     await copyTradingMonitor.start();
-    console.log(' Copy trading bot started successfully!\n');
+    console.log('✅ Copy trading bot started successfully!\n');
   } catch (error: any) {
-    console.error(' Failed to start copy trading bot:', error.message);
+    console.error('❌ Failed to start copy trading bot:', error.message);
     process.exit(1);
   }
 
   // Graceful shutdown
   process.on('SIGINT', () => {
-    console.log('\n\n Shutting down copy trading bot...');
+    console.log('\n\n🛑 Shutting down copy trading bot...');
     const stats = copyTradingMonitor.getStats();
-    console.log('\n Final Statistics:');
+    console.log('\n📊 Final Statistics:');
     console.log(`   Total trades executed: ${stats.totalTradesExecuted}`);
     console.log(`   Total trades failed: ${stats.totalTradesFailed}`);
     console.log(`   Total volume: $${stats.totalVolume}`);
@@ -98,7 +98,7 @@ async function main() {
   });
 
   process.on('SIGTERM', () => {
-    console.log('\n\n Shutting down copy trading bot...');
+    console.log('\n\n🛑 Shutting down copy trading bot...');
     copyTradingMonitor.stop();
     process.exit(0);
   });

@@ -28,7 +28,7 @@ async function main() {
       if (status.recentTrades.length > 0) {
         console.log(`\nRecent Trading Activity (${status.recentTrades.length} trades):`);
         status.recentTrades.forEach((trade, index) => {
-          const side = trade.side === 'buy' ? ' BUY' : ' SELL';
+          const side = trade.side === 'buy' ? '🟢 BUY' : '🔴 SELL';
           console.log(`  ${index + 1}. ${side} ${trade.quantity} shares @ $${parseFloat(trade.price).toFixed(4)}`);
           console.log(`     Market: ${trade.market.question}`);
           if (trade.transactionHash) {
